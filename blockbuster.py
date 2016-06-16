@@ -23,7 +23,7 @@ parser.add_argument("--sep", default="\t", help="separator (default: '\t')")
 try:
     args = parser.parse_args()
 except:
-    print('\nError while parsing the arguments.\n')
+    print('\nThere was an error while parsing the arguments.\n')
     parser.print_help()
 
 # Global Variables
