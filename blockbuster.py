@@ -39,13 +39,14 @@ clusterCounter = 0
 
     
 class read:
-        chrom = None
-        start = None
-        end = None
-        block = None
-        height = None
-        id = None
-        strand = None
+    def __init__(self, chrom = None, start = None, end = None, block = -1, height = None, id = None, strand = None):
+		self.chrom = chrom
+		self.start = start
+		self.end = end
+		self.block = block
+		self.height = height
+		self.id = id
+		self.strand = strand
 
 def writeHeader():
     print("# blockbuster result file generated %(t)s\n# query file: %(filename)s\n# scale: %(sizescale).1f, minblockheight: %(minblockheight)i, mergeDistance: %(merge)i\n# block_number\tchromosome\tstart_of_block\tend_of_block\tstrand\treadIDs\n"%\
@@ -288,7 +289,6 @@ def read_bed_file(filename):
         print("cannot open %(filename)s\n"%{'filename':filename})
     else:
         header= 0
-        line = ''
         while True:
             line=f.readline()
             if not line:
@@ -402,14 +402,7 @@ def read_bed_file(filename):
                         clusterHeight += height
                         tagCount += 1
                         
-                    thisRead        = read()
-                    thisRead.chrom  = chrom
-                    thisRead.id     = id
-                    thisRead.strand = strand
-                    thisRead.start  = start
-                    thisRead.end    = end
-                    thisRead.height = height
-                    thisRead.block  = -1
+                    thisRead = read(chrom=chrom, start=start, end=end, height=height, id=id, strand=strand)
                     thisCluster.append(thisRead)
                                     
                     clusterChrom    = chrom
@@ -419,7 +412,6 @@ def read_bed_file(filename):
                     lastEnd         = end
 
             elif header == 1:
-                line = ""
                 header = 0
         
         assignReadsToBlocks(thisCluster)
