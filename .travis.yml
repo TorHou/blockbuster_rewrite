@@ -13,5 +13,6 @@ install:
 
 script:
   - flake8 . --ignore E501
-  - ./moff.py --help
+  - ./blockbuster.py --help
+
 
