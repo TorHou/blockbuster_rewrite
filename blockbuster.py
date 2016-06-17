@@ -1,5 +1,4 @@
 import math
-import string
 import time
 import argparse
 import numpy
@@ -36,9 +35,9 @@ clusterChrom = "x"
 clusterStrand = "x"
 clusterCounter = 0
 
-    
+
 class read:
-    def __init__(self, chrom = None, start = None, end = None, block = -1, height = None, id = None, strand = None):
+    def __init__(self, chrom=None, start=None, end=None, block=-1, height=None, id=None, strand=None):
 		self.chrom = chrom
 		self.start = start
 		self.end = end
@@ -46,6 +45,7 @@ class read:
 		self.height = height
 		self.id = id
 		self.strand = strand
+
 
 def writeHeader():
     print("# blockbuster result file generated %(t)s\n# query file: %(filename)s\n# scale: %(sizescale).1f, minblockheight: %(minblockheight)i, mergeDistance: %(merge)i\n# block_number\tchromosome\tstart_of_block\tend_of_block\tstrand\treadIDs\n"%\
