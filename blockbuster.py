@@ -305,33 +305,18 @@ def read_bed_file(filename):
                 if (args.type) == 1:
                    #run through line and split at separator
                     linelist = line.split()
-                    for i in range(len(linelist)):
-                        if i == 0:
-                            chrom = linelist[i]
-                        if i == 1:
-                            try:
-                                start = int(linelist[i])
-                            except:
-                                print('\nwrong file format\n')
-                                parser.print_help()
-                                exit(0)
-                        if i == 2:
-                            try:
-                                end = int(linelist[i])
-                            except:
-                                print('\nwrong file format\n')
-                                parser.print_help()
-                                exit(0)    
-                        if i == 3:
-                            id = linelist[i]
-                        if i == 4:
-                            height = float(linelist[i])
-                        if i == 5:
-                            strand = linelist[i]
-                            if strand == None:
-                                print('\nwrong file format\n')
-                                parser.print_help()
-                                exit(0)
+                    try: 
+                        chrom = linelist[0]
+                        start = int(linelist[1])
+                        end = int(linelist[2])
+                        id = linelist[3]
+                        height = float(linelist[4])
+                        strand = linelist[5]
+                    except:
+                        print('\nwrong file format\n')
+                        parser.print_help()
+                        exit(0)
+                    
                                 
                 elif (args.type) == 2:
                     #run through line and split at separator
