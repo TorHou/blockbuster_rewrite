@@ -1,7 +1,7 @@
 import math
 import time
 import argparse
-import numpy
+import numpy as np
 from scipy import stats
 from scipy.stats import norm
 
@@ -58,17 +58,6 @@ def getRest(anchor):
         if r.block == -1:
             sum += 1
     return sum
-
-#GET THE HIGHEST PEAK IN THE DISTRIBUTION ARRAY
-def getHighestPeak(distrib, size):
-    max = 0
-    result = 0
-    for i in range(size):
-        if distrib[i] > max:
-            result = i
-            max = distrib[i]
-    distrib[result] = 0
-    return result
 
 #CALCULATE THE STANDARD DEVIATION
 def stddev(readMeans, readHeights, size):
@@ -161,15 +150,15 @@ def assignReadsToBlocks(anchor):
         old = getRest(anchor)
 
         #clean distribution array
-        for p in range(clusterSize):
-            distrib[p] = 0
+        distrib=np.zeros(clusterSize,dtype=np.dtype('d'))
    
         #write distribution
         writeSuperGaussian(anchor, distrib, clusterSize)
-        highestPeak = getHighestPeak(distrib, clusterSize)
+        highestPeakIndex = np.argmax(distrib)
+        distrib[highestPeakIndex]=0
         
         #assign reads to the highest peak
-        sum = assignReads(anchor, highestPeak, readCount, blockCount)
+        sum = assignReads(anchor, highestPeakIndex, readCount, blockCount)
         if sum != 0:
             blockCount += 1
         new = getRest(anchor)
@@ -201,12 +190,12 @@ def writeBlocks(anchor):
         thisTagCount = 0
 
         #run through linked list of reads
-        for start in anchor:
+        for read in anchor:
             #if current read is in thisBlock
-            if start.block == thisBlock:
+            if read.block == thisBlock:
                 size += 1
-                blockHeight += start.height
-                thisClusterHeight += start.height
+                blockHeight += read.height
+                thisClusterHeight += read.height
                 thisTagCount += 1
 
         #check if block is high enough
