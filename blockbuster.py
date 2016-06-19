@@ -321,33 +321,18 @@ def read_bed_file(filename):
                 elif (args.type) == 2:
                     #run through line and split at separator
                     linelist = line.split()
-                    for i in range(len(linelist)):
-                        if i == 1:
-                            info = linelist[i]
-                        if i == 9:
-                            strand = linelist[i]
-                            if strand == None:
-                                print('\nwrong file format\n')
-                                parser.print_help()
-                                exit(0)
-                        if i == 10:
-                            try:
-                                start = int(linelist[i])
-                            except:
-                                print('\nwrong file format\n')
-                                parser.print_help()
-                                exit(0)
-                        if i == 11:
-                            try:
-                                end = int(linelist[i])
-                            except:
-                                print('\nwrong file format\n')
-                                parser.print_help()
-                                exit(0)
-                        if i == 12:
-                            chrom = linelist[i]
-                        if i == 14:
-                            freq = float(linelist[i])
+                    try: 
+                        info = linelist[1]
+                        strand = int(linelist[9])
+                        assert strand != None
+                        start = int(linelist[10])
+                        end = int(linelist[11])
+                        chrom = linelist[12]
+                        freq = float(linelist[14])
+                    except:
+                        print('\nwrong file format\n')
+                        parser.print_help()
+                        exit(0)
 
                     #split id|freq
                     q = info.split('|')
