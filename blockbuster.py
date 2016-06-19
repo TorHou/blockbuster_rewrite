@@ -81,7 +81,7 @@ def stddev(readMeans, readHeights, size):
     return math.sqrt(s / counter)
 
 #CALCULATE THE GAUSSIAN DISTRIBUTIONS OF ALL READS AND SUM THEM UP
-def writeSuperGaussian(anchor, distrib, clusterheight):
+def writeSuperGaussian(anchor, distrib, clusterSize):
     global clusterStart
  
     for r in anchor:
@@ -89,13 +89,15 @@ def writeSuperGaussian(anchor, distrib, clusterheight):
             mean = ((r.start + r.end) / 2) - clusterStart
             variance = args.sizescale * (abs(r.end - r.start)/2)
             
+             
+            x = [i + mean for i in range(int(2*variance) + 1)]
+            y = r.height * norm.pdf(x, mean, variance)
             for i in range(int(2*variance) + 1):
                 x = mean + i
-                y = r.height * norm.pdf(x, mean, variance)
-                if (int(x) < clusterheight):
-                    distrib[int(x)] += y
+                if (int(x) < clusterSize):
+                    distrib[int(x)] += y[i]
                 if (int(mean - i) > 0):
-                    distrib[int(mean - i)] += y
+                    distrib[int(mean - i)] += y[i]
 
 #ASSIGN READS TO A BLOCK
 def assignReads(anchor, highestPeak, clusterSize, blockCount):
