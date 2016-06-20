@@ -49,7 +49,7 @@ class read:
 
 def writeHeader():
     print("# blockbuster result file generated %(t)s\n# query file: %(filename)s\n# scale: %(sizescale).1f, minblockheight: %(minblockheight)i, mergeDistance: %(merge)i\n# block_number\tchromosome\tstart_of_block\tend_of_block\tstrand\treadIDs\n"
-           % {'t': time.ctime(None), 'filename': args.file, 'sizescale': args.sizescale, 'minblockheight': args.minblockheight, 'merge': args.merge})
+          % {'t': time.ctime(None), 'filename': args.file, 'sizescale': args.sizescale, 'minblockheight': args.minblockheight, 'merge': args.merge})
 
 
 # GET THE AMOUNT OF READS NOT ASSIGNED TO BLOCKS
@@ -214,8 +214,8 @@ def writeBlocks(anchor):
         clusterCounter += 1
         # print header
         print(">cluster_%(cC)i\t%(cCh)s\t%(cS)i\t%(cE)i\t%(cStr)s\t%(absCH).2f\t%(absTC)i\t%(blockNb)i"
-               % {'cC': clusterCounter, 'cCh': clusterChrom, 'cS': clusterStart, 'cE': clusterEnd,
-               'cStr': clusterStrand, 'absCH': absClusterHeight, 'absTC': absTagCount, 'blockNb': blockNb})
+              % {'cC': clusterCounter, 'cCh': clusterChrom, 'cS': clusterStart, 'cE': clusterEnd,
+              'cStr': clusterStrand, 'absCH': absClusterHeight, 'absTC': absTagCount, 'blockNb': blockNb})
 
         # print blocks
         if args.printout == 1:
@@ -244,8 +244,8 @@ def writeBlocks(anchor):
                 if (thisBlockHeight >= args.minblockheight) and (size > 0):
                     writeBlock += 1
                     print("%(wB)i\t%(cCh)s\t%(tBS)i\t%(tBE)i\t%(cS)s\t%(tBH).2f\t%(tBT)i"
-                           % {'wB': writeBlock, 'cCh': clusterChrom, 'tBS': thisBlockStart, 'tBE': thisBlockEnd, 
-                           'cS': clusterStrand, 'tBH': thisBlockHeight, 'tBT': thisBlockTags})
+                          % {'wB': writeBlock, 'cCh': clusterChrom, 'tBS': thisBlockStart, 'tBE': thisBlockEnd,
+                          'cS': clusterStrand, 'tBH': thisBlockHeight, 'tBT': thisBlockTags})
 
         # print tags
         if args.printout == 2:
@@ -265,8 +265,8 @@ def writeBlocks(anchor):
                     for start in anchor:
                         if start.block == thisBlock:
                             print("%(sCh)s\t%(ss)d\t%(se)d\t%(si)s\t%(sh)lf\t%(sst)s\t%(wB)i"
-                                   % {'sCh': start.chrom, 'ss': start.start, 'se': start.end, 'si': start.id, 
-                                   'sh': start.height, 'sst': start.strand, 'wB': writeBlock})
+                                  % {'sCh': start.chrom, 'ss': start.start, 'se': start.end, 'si': start.id,
+                                  'sh': start.height, 'sst': start.strand, 'wB': writeBlock})
 
 
 def read_bed_file(filename):
