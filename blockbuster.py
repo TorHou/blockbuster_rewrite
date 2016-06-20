@@ -26,7 +26,6 @@ except:
 
 # Global Variables
 pi = math.pi
-clusterStart = -1
 clusterEnd = -1
 clusterHeight = 0
 readCount = 0
@@ -84,8 +83,7 @@ def stddev(readMeans, readHeights, size):
 
 
 # CALCULATE THE GAUSSIAN DISTRIBUTIONS OF ALL READS AND SUM THEM UP
-def writeSuperGaussian(anchor, distrib, clusterSize):
-    global clusterStart
+def writeSuperGaussian(anchor, distrib, clusterSize, clusterStart):
 
     for r in anchor:
         if r.block == -1:
@@ -116,9 +114,8 @@ def writeSuperGaussian(anchor, distrib, clusterSize):
 
 
 # ASSIGN READS TO A BLOCK
-def assignReads(anchor, highestPeak, clusterSize, blockCount):
+def assignReads(anchor, highestPeak, clusterSize, blockCount, clusterStart):
     global tagCount
-    global clusterStart
     readMeans = []
     readHeights = []
     meanCounter = 0
@@ -148,11 +145,10 @@ def assignReads(anchor, highestPeak, clusterSize, blockCount):
     return counterNew
 
 
-def assignReadsToBlocks(anchor):
+def assignReadsToBlocks(anchor, clusterStart):
     blockCount = 1
     global readCount
     global clusterEnd
-    global clusterStart
 
     # create an array with clusterSize entries for the superGaussian distribution
     clusterSize = (clusterEnd - clusterStart)
@@ -171,22 +167,21 @@ def assignReadsToBlocks(anchor):
         distrib = np.zeros(clusterSize, dtype=np.dtype('d'))
 
         # write distribution
-        writeSuperGaussian(anchor, distrib, clusterSize)
+        writeSuperGaussian(anchor, distrib, clusterSize, clusterStart)
         highestPeakIndex = np.argmax(distrib)
         distrib[highestPeakIndex] = 0
 
         # assign reads to the highest peak
-        sum = assignReads(anchor, highestPeakIndex, readCount, blockCount)
+        sum = assignReads(anchor, highestPeakIndex, readCount, blockCount, clusterStart)
         if sum != 0:
             blockCount += 1
         new = getRest(anchor)
 
 
 # WRITE THE READS THAT ARE ASSIGNED TO A BLOCK TO STDOUT
-def writeBlocks(anchor):
+def writeBlocks(anchor, clusterStart):
     global clusterCounter
     global clusterChrom
-    global clusterStart
     global clusterEnd
     global clusterStrand
     thisBlock = 0
@@ -284,7 +279,6 @@ def writeBlocks(anchor):
 
 def read_bed_file(filename):
     global clusterHeight
-    global clusterStart
     global clusterEnd
     global tagCount
     global clusterStrand
@@ -361,8 +355,8 @@ def read_bed_file(filename):
                     if (chrom != lastChrom) or (strand != lastStrand) or ((start - lastEnd) > (args.distance)):
                         if ((clusterHeight) > (args.minClusterHeight)):
                             # Analyze Cluster
-                            assignReadsToBlocks(thisCluster)
-                            writeBlocks(thisCluster)
+                            assignReadsToBlocks(thisCluster, clusterStart)
+                            writeBlocks(thisCluster, clusterStart)
 
                         thisCluster = []
 
@@ -393,8 +387,8 @@ def read_bed_file(filename):
             elif header == 1:
                 header = 0
 
-        assignReadsToBlocks(thisCluster)
-        writeBlocks(thisCluster)
+        assignReadsToBlocks(thisCluster, clusterStart)
+        writeBlocks(thisCluster, clusterStart)
 
         f.close()
 
