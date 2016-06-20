@@ -215,7 +215,7 @@ def writeBlocks(anchor):
         # print header
         print(">cluster_%(cC)i\t%(cCh)s\t%(cS)i\t%(cE)i\t%(cStr)s\t%(absCH).2f\t%(absTC)i\t%(blockNb)i"
               % {'cC': clusterCounter, 'cCh': clusterChrom, 'cS': clusterStart, 'cE': clusterEnd,
-              'cStr': clusterStrand, 'absCH': absClusterHeight, 'absTC': absTagCount, 'blockNb': blockNb})
+                 'cStr': clusterStrand, 'absCH': absClusterHeight, 'absTC': absTagCount, 'blockNb': blockNb})
 
         # print blocks
         if args.printout == 1:
@@ -245,7 +245,7 @@ def writeBlocks(anchor):
                     writeBlock += 1
                     print("%(wB)i\t%(cCh)s\t%(tBS)i\t%(tBE)i\t%(cS)s\t%(tBH).2f\t%(tBT)i"
                           % {'wB': writeBlock, 'cCh': clusterChrom, 'tBS': thisBlockStart, 'tBE': thisBlockEnd,
-                          'cS': clusterStrand, 'tBH': thisBlockHeight, 'tBT': thisBlockTags})
+                             'cS': clusterStrand, 'tBH': thisBlockHeight, 'tBT': thisBlockTags})
 
         # print tags
         if args.printout == 2:
@@ -266,7 +266,7 @@ def writeBlocks(anchor):
                         if start.block == thisBlock:
                             print("%(sCh)s\t%(ss)d\t%(se)d\t%(si)s\t%(sh)lf\t%(sst)s\t%(wB)i"
                                   % {'sCh': start.chrom, 'ss': start.start, 'se': start.end, 'si': start.id,
-                                  'sh': start.height, 'sst': start.strand, 'wB': writeBlock})
+                                     'sh': start.height, 'sst': start.strand, 'wB': writeBlock})
 
 
 def read_bed_file(filename):
