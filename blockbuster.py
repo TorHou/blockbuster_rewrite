@@ -89,30 +89,17 @@ def writeSuperGaussian(anchor, distrib, clusterSize):
 
     for r in anchor:
         if r.block == -1:
-            rmean = ((r.start + r.end) / 2) - clusterStart
+            mean = ((r.start + r.end) / 2) - clusterStart
             variance = args.sizescale * (abs(r.end - r.start) / 2)
-            v = int(2 * variance) 
-            xr = np.arange(-v + rmean,v + 1 + rmean)
-            y = np.zeros(2 * v)
-            y = r.height * norm.pdf(xr, rmean, variance)
-            if rmean - v < 0:
-                ds = 0
-                de = rmean + v
-                xs = v - rmean
-                xe = rmean + v
-            elif rmean + v > clusterSize:
-                ds = rmean - v
-                de = clusterSize - 1
-                xs = 0
-                xe = clusterSize - rmean
-            else:
-                ds = rmean - v
-                de = rmean + v + 1
-                xs = 0
-                xe = len(y) 
-            distrib[ds:de] = distrib[ds:de] + y[xs:xe]
-            # this next line reimplements a bug from the c code
-            distrib[rmean] += y[v]
+
+            x = [i + mean for i in range(int(2 * variance) + 1)]
+            y = r.height * norm.pdf(x, mean, variance)
+            for i in range(int(2 * variance) + 1):
+                x = mean + i
+                if (int(x) < clusterSize):
+                    distrib[int(x)] += y[i]
+                if (int(mean - i) > 0):
+                    distrib[int(mean - i)] += y[i]
 
 
 # ASSIGN READS TO A BLOCK
