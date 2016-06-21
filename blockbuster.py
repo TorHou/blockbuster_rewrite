@@ -87,26 +87,30 @@ def writeSuperGaussian(anchor, distrib, clusterSize, clusterStart):
 
     for r in anchor:
         if r.block == -1:
-            dmean = ((r.start + r.end) / 2) - clusterStart
+            rmean = ((r.start + r.end) / 2) - clusterStart
             variance = args.sizescale * (abs(r.end - r.start) / 2)
-            v = int(2 * variance)
-            xr = np.arange(dmean - v, dmean + v + 1)
+            v = int(2 * variance) 
+            xr = np.arange(-v + rmean,v + 1 + rmean)
             y = np.zeros(2 * v)
-            y = r.height * norm.pdf(xr, dmean, variance)
-            ds = dmean - v + 1
-            de = dmean + v + 1
-            xs = 0
-            xe = len(y) - 1
-            if dmean - v < 0:
+            y = r.height * norm.pdf(xr, rmean, variance)
+            if rmean - v < 0:
                 ds = 0
-                xs = v - dmean - 1
-            if dmean + v + 1 > clusterSize:
+                de = rmean + v
+                xs = v - rmean
+                xe = rmean + v
+            elif rmean + v > clusterSize:
+                ds = rmean - v
                 de = clusterSize - 1
-                xe = clusterSize - dmean + v - 2
-            #print "\t".join(["dmean:",str(dmean),"v:",str(v),"ds:", str(ds),"de:",str(de),"dist-len:",str(len(distrib)),"xs:",str(xs),"xe:",str(xe),"len:",str(len(xr))])
-            distrib[ds:de] += y[xs:xe]
+                xs = 0
+                xe = clusterSize - rmean
+            else:
+                ds = rmean - v
+                de = rmean + v + 1
+                xs = 0
+                xe = len(y) 
+            distrib[ds:de] = distrib[ds:de] + y[xs:xe]
             # this next line reimplements a bug from the c code
-            distrib[dmean] += y[v]
+            distrib[rmean] += y[v]
 
 
 # ASSIGN READS TO A BLOCK
@@ -148,6 +152,9 @@ def assignReadsToBlocks(anchor, clusterStart):
 
     # create an array with clusterSize entries for the superGaussian distribution
     clusterSize = (clusterEnd - clusterStart)
+    distrib = []
+    for p in range(clusterSize):
+            distrib.append(0)
 
     old = 1
     new = 0
@@ -276,7 +283,6 @@ def read_bed_file(filename):
     global tagCount
     global clusterStrand
     global clusterChrom
-    clusterStart = -1
     thisCluster = []
     lastEnd = -1
     lastChrom = "x"
