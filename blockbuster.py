@@ -77,8 +77,7 @@ def stddev(readMeans, readHeights, size):
     s = 0
     for i in range(size):
         if (readMeans[i] != -1):
-            for j in range(int(readHeights[i])):
-                s += (np.int(readHeights[i]) * np.power((readMeans[i] - mean), 2))
+            s += (np.int(readHeights[i]) * np.power((readMeans[i] - mean), 2))
 
     return math.sqrt(s / counter)
 
