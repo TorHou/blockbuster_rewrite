@@ -1,4 +1,3 @@
-import math
 import time
 import argparse
 import numpy as np
@@ -25,7 +24,6 @@ except:
     parser.print_help()
 
 # Global Variables
-pi = math.pi
 clusterStart = -1
 clusterEnd = -1
 clusterHeight = 0
@@ -62,7 +60,7 @@ def getRest(anchor):
 
 
 # CALCULATE THE STANDARD DEVIATION
-def stddev(readMeans, readHeights, size):
+def stddev(readMeans, readHeights):
     s = 0
     counter = 0
     for i in range(size):
@@ -79,7 +77,7 @@ def stddev(readMeans, readHeights, size):
         if (readMeans[i] != -1):
             s += (np.int(readHeights[i]) * np.power((readMeans[i] - mean), 2))
 
-    return math.sqrt(s / counter)
+    return np.sqrt(s / counter)
 
 
 # CALCULATE THE GAUSSIAN DISTRIBUTIONS OF ALL READS AND SUM THEM UP
@@ -105,19 +103,15 @@ def writeSuperGaussian(anchor, distrib, clusterSize):
 def assignReads(anchor, highestPeak, clusterSize, blockCount):
     global tagCount
     global clusterStart
-    readMeans = []
-    readHeights = []
+    readMeans = -1 * np.ones(tagCount, dtype=np.double)
+    readHeights = -1 * np.ones(tagCount, dtype=np.double)
     meanCounter = 0
-
-    for p in range(tagCount):
-        readMeans.append(-1)
-        readHeights.append(-1)
 
     counterNew = 0
     counterOld = -1
 
     while counterOld != counterNew:
-        dev = stddev(readMeans, readHeights, tagCount)
+        dev = stddev(readMeans, readHeights)
         counterOld = counterNew
         for start in anchor:
             if start.block == -1:
@@ -142,9 +136,7 @@ def assignReadsToBlocks(anchor):
 
     # create an array with clusterSize entries for the superGaussian distribution
     clusterSize = (clusterEnd - clusterStart)
-    distrib = []
-    for p in range(clusterSize):
-            distrib.append(0)
+    distrib = np.zeros(clusterSize, dtype=np.double)
 
     old = 1
     new = 0
@@ -381,7 +373,6 @@ def read_bed_file(filename):
 
         assignReadsToBlocks(thisCluster)
         writeBlocks(thisCluster)
-
         f.close()
 
 try:
