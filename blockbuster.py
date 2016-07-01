@@ -63,7 +63,7 @@ def getRest(anchor):
 def stddev(readMeans, readHeights):
     s = 0
     counter = 0
-    for i in range(size):
+    for i in range(tagCount):
         if readMeans[i] != -1:
             s += (np.int(readHeights[i]) * readMeans[i])
             counter += np.int(readHeights[i])
@@ -73,7 +73,7 @@ def stddev(readMeans, readHeights):
     mean = s / counter
 
     s = 0
-    for i in range(size):
+    for i in range(tagCount):
         if (readMeans[i] != -1):
             s += (np.int(readHeights[i]) * np.power((readMeans[i] - mean), 2))
 
