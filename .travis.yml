@@ -13,7 +13,7 @@ install:
 
 script:
   - flake8 . --ignore E501
-  - time python blockbuster.py test-data/mbtest.bed > out.tmp
-  - diff test-data/mbtest_output.txt out.tmp
+  - time python blockbuster.py test-data/test2.bed > out.tmp
+  - diff test-data/test2_output.txt out.tmp
 
 
