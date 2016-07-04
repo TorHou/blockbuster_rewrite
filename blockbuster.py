@@ -1,7 +1,6 @@
 import time
 import argparse
 import numpy as np
-# from scipy import stats
 from scipy.stats import norm
 
 # User Variables
@@ -43,15 +42,17 @@ class read:
         self.height = height
         self.id = id
         self.strand = strand
+        self.next = None
 
+# The new object class which will be used to store the reads in the cluster in a linked list style.
 class cluster:
     def __init__(self):
-        self.head = None
+        self.head = None    # Set the first object reference to None.
 
-    def add_read(self, chrom=None, start=None, end=None, block=-1, height=None, id=None, strand=None):
-        new_read = read(chrom=None, start=None, end=None, block=-1, height=None, id=None, strand=None)
-        new_read.next = self.head
-        self.head = new_read
+    def add_read(self, chrom, start, end, height, id, strand):      # Add a read to the cluster.
+        new_read = read(chrom=chrom, start=start, end=end, height=height, id=id, strand=strand) # Create a new instance for the read.
+        new_read.next = self.head   # Link the new read object with the reference of the first object of the cluster
+        self.head = new_read    # The new head of the cluster is the just added read.
 
     def free(self):
         self.head = None
@@ -90,23 +91,26 @@ class cluster:
     # GET THE AMOUNT OF READS NOT ASSIGNED TO BLOCKS
     def getRest(self):
         sum = 0
+        tmp = self.head
         while self.head != None:
             if self.head.block == -1:
                 sum += 1
             self.head = self.head.next
+        self.head = tmp
         return sum
 
     # CALCULATE THE GAUSSIAN DISTRIBUTIONS OF ALL READS AND SUM THEM UP
     def writeSuperGaussian(self, distrib, clusterSize):
         global clusterStart
 
+        tmp = self.head
         while self.head != None:
             if self.head.block == -1:
-                mean = ((r.start + r.end) / 2) - clusterStart
-                variance = args.sizescale * (abs(r.end - r.start) / 2)
+                mean = ((self.head.start + self.head.end) / 2) - clusterStart
+                variance = args.sizescale * (abs(self.head.end - self.head.start) / 2)
 
                 x = [i + mean for i in range(int(2 * variance) + 1)]
-                y = r.height * norm.pdf(x, mean, variance)
+                y = self.head.height * norm.pdf(x, mean, variance)
                 for i in range(int(2 * variance) + 1):
                     x = mean + i
                     if (int(x) < clusterSize):
@@ -114,6 +118,7 @@ class cluster:
                     if (int(mean - i) > 0):
                         distrib[int(mean - i)] += y[i]
             self.head = self.head.next
+        self.head = tmp
 
     # ASSIGN READS TO A BLOCK
     def assignReads(self, highestPeak, clusterSize, blockCount):
@@ -129,6 +134,7 @@ class cluster:
         while counterOld != counterNew:
             dev = stddev(readMeans, readHeights)
             counterOld = counterNew
+            tmp = self.head
             while self.head != None:
                 if self.head.block == -1:
                     mean = ((self.head.start + self.head.end) / 2) - clusterStart
@@ -141,6 +147,7 @@ class cluster:
                         self.head.block = blockCount
                         counterNew += 1
                 self.head = self.head.next
+            self.head = tmp
 
         return counterNew
 
@@ -171,6 +178,7 @@ class cluster:
             thisTagCount = 0
 
             # run through linked list of reads
+            tmp = self.head
             while self.head != None:
                 # if current read is in thisBlock
                 if self.head.block == thisBlock:
@@ -179,6 +187,7 @@ class cluster:
                     thisClusterHeight += self.head.height
                     thisTagCount += 1
                 self.head = self.head.next
+            self.head = tmp
 
             # check if block is high enough
             if (blockHeight >= args.minblockheight) and (size > 0):
@@ -205,6 +214,7 @@ class cluster:
                     thisBlockTags = 0
                     thisBlockStart = -1
                     thisBlockEnd = -1
+                    tmp = self.head
                     while self.head != None:
                         if self.head.block == thisBlock:
                             if thisBlockStart == -1:
@@ -218,6 +228,7 @@ class cluster:
                             thisBlockTags += 1
                             size += 1
                         self.head = self.head.next
+                    self.head = tmp
                     if (thisBlockHeight >= args.minblockheight) and (size > 0):
                         writeBlock += 1
                         print("%(wB)i\t%(cCh)s\t%(tBS)i\t%(tBE)i\t%(cS)s\t%(tBH).2f\t%(tBT)i"
@@ -233,11 +244,13 @@ class cluster:
                     thisBlockHeight = 0
                     thisBlock += 1
                     size = 0
+                    tmp = self.head
                     while self.head != None:
                         if self.head.block == thisBlock:
                             thisBlockHeight += self.head.height
                             size += 1
                         self.head = self.head.next
+                    self.head = tmp
                     if (thisBlockHeight >= args.minblockheight) and (size > 0):
                         writeBlock += 1
                         while self.head != None:
@@ -246,6 +259,7 @@ class cluster:
                                       % {'sCh': self.head.chrom, 'ss': self.head.start, 'se': self.head.end, 'si': self.head.id,
                                          'sh': self.head.height, 'sst': self.head.strand, 'wB': writeBlock})
                             self.head = self.head.next
+                        self.head = tmp
 
 
 def writeHeader():
@@ -373,7 +387,7 @@ def read_bed_file(filename):
                         clusterHeight += height
                         tagCount += 1
 
-                    thisCluster.add_read(chrom=chrom, start=start, end=end, height=height, id=id, strand=strand)
+                    thisCluster.add_read(chrom, start, end, height, id, strand)
 
                     clusterChrom = chrom
                     clusterStrand = strand
