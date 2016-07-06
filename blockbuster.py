@@ -279,10 +279,7 @@ def read_bed_file(filename):
         print("cannot open %(filename)s\n" % {'filename': filename})
     else:
         header = 0
-        while True:
-            line = f.readline()
-            if not line:
-                break
+        for line in iter(f.readline, ''):
             # if "#" at the beginning of line -> header
             if line[0] == '#':
                 header = 1
