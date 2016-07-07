@@ -262,12 +262,12 @@ def writeBlocks(anchor):
 
 
 def read_bed_file(filename):
-    # global clusterHeight
-    # global clusterStart
-    # global clusterEnd
-    # global tagCount
-    # global clusterStrand
-    # global clusterChrom
+    global clusterHeight
+    global clusterStart
+    global clusterEnd
+    global tagCount
+    global clusterStrand
+    global clusterChrom
     thisCluster = []
     lastEnd = -1
     lastChrom = "x"
