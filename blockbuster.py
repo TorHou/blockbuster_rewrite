@@ -51,21 +51,22 @@ def writeHeader():
 
 # GET THE AMOUNT OF READS NOT ASSIGNED TO BLOCKS
 def getRest(anchor):
-    sum = 0
-    for r in anchor:
-        if r.block == -1:
-            sum += 1
-    return sum
+    summe = sum([1 for r in anchor if r.block == -1])
+    return summe
 
 
 # CALCULATE THE STANDARD DEVIATION
 def stddev(readMeans, readHeights, size):
     s = 0
     counter = 0
+    # TODO: here we have two time the same for loop
+    # we can simply save np.int(readHeights[i]) as an numpy array and
+    # in one case multiply with readMeans[i] in the other with np.power((readMeans[i] - mean), 2) isn't it?
     for i in range(size):
         if readMeans[i] != -1:
-            s += (np.int(readHeights[i]) * readMeans[i])
-            counter += np.int(readHeights[i])
+            rH = np.int(readHeights[i])
+            s += (rH * readMeans[i])
+            counter += rH
             
     if counter == 0:
         return 0
@@ -73,7 +74,7 @@ def stddev(readMeans, readHeights, size):
 
     s = 0
     for i in range(size):
-        if (readMeans[i] != -1):
+        if readMeans[i] != -1:
             s += (np.int(readHeights[i]) * np.power((readMeans[i] - mean), 2))
 
     return np.sqrt(s / counter)
@@ -81,7 +82,7 @@ def stddev(readMeans, readHeights, size):
 
 # CALCULATE THE GAUSSIAN DISTRIBUTIONS OF ALL READS AND SUM THEM UP
 def writeSuperGaussian(anchor, distrib, clusterSize):
-    global clusterStart
+    #global clusterStart
 
     for r in anchor:
         if r.block == -1:
@@ -92,16 +93,16 @@ def writeSuperGaussian(anchor, distrib, clusterSize):
             y = r.height * norm.pdf(x, mean, variance)
             for i in range(int(2 * variance) + 1):
                 x = mean + i
-                if (int(x) < clusterSize):
-                    distrib[int(x)] += y[i]
-                if (int(mean - i) > 0):
-                    distrib[int(mean - i)] += y[i]
+                if x < clusterSize:
+                    distrib[x] += y[i]
+                if mean - i > 0:
+                    distrib[mean - i] += y[i]
 
 
 # ASSIGN READS TO A BLOCK
 def assignReads(anchor, highestPeak, clusterSize, blockCount):
-    global tagCount
-    global clusterStart
+    #global tagCount
+    #global clusterStart
     readMeans = np.empty(tagCount)
     readHeights = np.empty(tagCount)
     readMeans = np.full_like(readMeans, -1, dtype=np.double)
@@ -132,9 +133,9 @@ def assignReads(anchor, highestPeak, clusterSize, blockCount):
 
 def assignReadsToBlocks(anchor):
     blockCount = 1
-    global readCount
-    global clusterEnd
-    global clusterStart
+    #global readCount
+    #global clusterEnd
+    #global clusterStart
 
     # create an array with clusterSize entries for the superGaussian distribution
     clusterSize = (clusterEnd - clusterStart)
@@ -164,11 +165,11 @@ def assignReadsToBlocks(anchor):
 
 # WRITE THE READS THAT ARE ASSIGNED TO A BLOCK TO STDOUT
 def writeBlocks(anchor):
-    global clusterCounter
-    global clusterChrom
-    global clusterStart
-    global clusterEnd
-    global clusterStrand
+    #global clusterCounter
+    #global clusterChrom
+    #global clusterStart
+    #global clusterEnd
+    #global clusterStrand
     thisBlock = 0
     blockHeight = 0
     blockNb = 0
@@ -198,19 +199,17 @@ def writeBlocks(anchor):
                 thisTagCount += 1
 
         # check if block is high enough
-        if (blockHeight >= args.minblockheight) and (size > 0):
+        if blockHeight >= args.minblockheight and size > 0:
             blockNb += 1
             absClusterHeight += thisClusterHeight
             absTagCount += thisTagCount
 
     if blockNb > 0:
         clusterCounter += 1
-        # print header
         print(">cluster_%(cC)i\t%(cCh)s\t%(cS)i\t%(cE)i\t%(cStr)s\t%(absCH).2f\t%(absTC)i\t%(blockNb)i"
               % {'cC': clusterCounter, 'cCh': clusterChrom, 'cS': clusterStart, 'cE': clusterEnd,
                  'cStr': clusterStrand, 'absCH': absClusterHeight, 'absTC': absTagCount, 'blockNb': blockNb})
 
-        # print blocks
         if args.printout == 1:
             thisBlock = 0
             size = 1
@@ -234,7 +233,7 @@ def writeBlocks(anchor):
                         thisBlockHeight += start.height
                         thisBlockTags += 1
                         size += 1
-                if (thisBlockHeight >= args.minblockheight) and (size > 0):
+                if thisBlockHeight >= args.minblockheight and size > 0:
                     writeBlock += 1
                     print("%(wB)i\t%(cCh)s\t%(tBS)i\t%(tBE)i\t%(cS)s\t%(tBH).2f\t%(tBT)i"
                           % {'wB': writeBlock, 'cCh': clusterChrom, 'tBS': thisBlockStart, 'tBE': thisBlockEnd,
@@ -253,7 +252,7 @@ def writeBlocks(anchor):
                     if start.block == thisBlock:
                         thisBlockHeight += start.height
                         size += 1
-                if (thisBlockHeight >= args.minblockheight) and (size > 0):
+                if thisBlockHeight >= args.minblockheight and size > 0:
                     writeBlock += 1
                     for start in anchor:
                         if start.block == thisBlock:
@@ -263,34 +262,26 @@ def writeBlocks(anchor):
 
 
 def read_bed_file(filename):
-    global clusterHeight
-    global clusterStart
-    global clusterEnd
-    global tagCount
-    global clusterStrand
-    global clusterChrom
+    #global clusterHeight
+    #global clusterStart
+    #global clusterEnd
+    #global tagCount
+    #global clusterStrand
+    #global clusterChrom
     thisCluster = []
     lastEnd = -1
     lastChrom = "x"
     lastStrand = "x"
-    try:
-        f = open(filename, "r")
-    except:
-        print("cannot open %(filename)s\n" % {'filename': filename})
-    else:
-        header = 0
-        for line in iter(f.readline, ''):
+    with open(filename) as handle:
+        for line handle:
             # if "#" at the beginning of line -> header
             if line[0] == '#':
-                header = 1
                 writeHeader()
-
-            # parse line
-            if header != 1:
+            else:
                 chrom, id, strand, info = None, None, None, None
                 start, end, height, freq = None, None, None, -1
 
-                if (args.type) == 1:
+                if args.type == 1:
                     # run through line and split at separator
                     linelist = line.split()
                     try:
@@ -305,7 +296,7 @@ def read_bed_file(filename):
                         parser.print_help()
                         exit(0)
 
-                elif (args.type) == 2:
+                elif args.type == 2:
                     # run through line and split at separator
                     linelist = line.split()
                     try:
@@ -322,21 +313,16 @@ def read_bed_file(filename):
                         exit(0)
 
                     # split id|freq
-                    q = info.split('|')
-                    for i in range(len(q)):
-                        if i == 0:
-                            id = q[i]
-                        if i == 1:
-                            height = float(q[i])
-
+                    id, height = info.split('|')
+                    height = float(height)
                     if height != -1:
                         height /= freq
                     else:
                         height = 1 / freq
 
-                if (height >= (args.tagFilter)):
-                    if (chrom != lastChrom) or (strand != lastStrand) or ((start - lastEnd) > (args.distance)):
-                        if ((clusterHeight) > (args.minClusterHeight)):
+                if height >= args.tagFilter:
+                    if chrom != lastChrom or strand != lastStrand or (start - lastEnd) > (args.distance):
+                        if clusterHeight > args.minClusterHeight:
                             # Analyze Cluster
                             assignReadsToBlocks(thisCluster)
                             writeBlocks(thisCluster)
@@ -367,13 +353,8 @@ def read_bed_file(filename):
                     lastStrand = strand
                     lastEnd = end
 
-            elif header == 1:
-                header = 0
-
         assignReadsToBlocks(thisCluster)
         writeBlocks(thisCluster)
-
-        f.close()
 
 try:
     read_bed_file(args.file)
