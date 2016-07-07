@@ -1,8 +1,6 @@
-import math
 import time
 import argparse
 import numpy as np
-# from scipy import stats
 from scipy.stats import norm
 
 # User Variables
@@ -25,7 +23,6 @@ except:
     parser.print_help()
 
 # Global Variables
-pi = math.pi
 clusterStart = -1
 clusterEnd = -1
 clusterHeight = 0
@@ -79,7 +76,7 @@ def stddev(readMeans, readHeights, size):
         if (readMeans[i] != -1):
             s += (np.int(readHeights[i]) * np.power((readMeans[i] - mean), 2))
 
-    return math.sqrt(s / counter)
+    return np.sqrt(s / counter)
 
 
 # CALCULATE THE GAUSSIAN DISTRIBUTIONS OF ALL READS AND SUM THEM UP
@@ -105,13 +102,12 @@ def writeSuperGaussian(anchor, distrib, clusterSize):
 def assignReads(anchor, highestPeak, clusterSize, blockCount):
     global tagCount
     global clusterStart
-    readMeans = []
-    readHeights = []
+    readMeans = np.empty(tagCount)
+    readHeights = np.empty(tagCount)
+    readMeans = np.full_like(readMeans, -1, dtype=np.double)
+    readHeights = np.full_like(readHeights, -1, dtype=np.double)
+    
     meanCounter = 0
-
-    for p in range(tagCount):
-        readMeans.append(-1)
-        readHeights.append(-1)
 
     counterNew = 0
     counterOld = -1
@@ -142,9 +138,7 @@ def assignReadsToBlocks(anchor):
 
     # create an array with clusterSize entries for the superGaussian distribution
     clusterSize = (clusterEnd - clusterStart)
-    distrib = []
-    for p in range(clusterSize):
-            distrib.append(0)
+    distrib = np.zeros(clusterSize, dtype=np.double)
 
     old = 1
     new = 0
@@ -285,10 +279,7 @@ def read_bed_file(filename):
         print("cannot open %(filename)s\n" % {'filename': filename})
     else:
         header = 0
-        while True:
-            line = f.readline()
-            if not line:
-                break
+        for line in iter(f.readline, ''):
             # if "#" at the beginning of line -> header
             if line[0] == '#':
                 header = 1
