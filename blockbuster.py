@@ -67,7 +67,7 @@ def stddev(readMeans, readHeights, size):
             rH = np.int(readHeights[i])
             s += (rH * readMeans[i])
             counter += rH
-            
+
     if counter == 0:
         return 0
     mean = s / counter
@@ -107,7 +107,7 @@ def assignReads(anchor, highestPeak, clusterSize, blockCount):
     readHeights = np.empty(tagCount)
     readMeans = np.full_like(readMeans, -1, dtype=np.double)
     readHeights = np.full_like(readHeights, -1, dtype=np.double)
-    
+
     meanCounter = 0
 
     counterNew = 0
@@ -356,8 +356,5 @@ def read_bed_file(filename):
         assignReadsToBlocks(thisCluster)
         writeBlocks(thisCluster)
 
-try:
-    read_bed_file(args.file)
-except:
-    print('\nError while reading the file.')
-    exit(0)
+read_bed_file(args.file)
+
