@@ -165,11 +165,11 @@ def assignReadsToBlocks(anchor):
 
 # WRITE THE READS THAT ARE ASSIGNED TO A BLOCK TO STDOUT
 def writeBlocks(anchor):
-    # global clusterCounter
-    # global clusterChrom
-    # global clusterStart
-    # global clusterEnd
-    # global clusterStrand
+    global clusterCounter
+    global clusterChrom
+    global clusterStart
+    global clusterEnd
+    global clusterStrand
     thisBlock = 0
     blockHeight = 0
     blockNb = 0
