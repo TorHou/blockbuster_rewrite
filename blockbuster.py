@@ -82,7 +82,7 @@ def stddev(readMeans, readHeights, size):
 
 # CALCULATE THE GAUSSIAN DISTRIBUTIONS OF ALL READS AND SUM THEM UP
 def writeSuperGaussian(anchor, distrib, clusterSize):
-    #global clusterStart
+    # global clusterStart
 
     for r in anchor:
         if r.block == -1:
@@ -101,8 +101,8 @@ def writeSuperGaussian(anchor, distrib, clusterSize):
 
 # ASSIGN READS TO A BLOCK
 def assignReads(anchor, highestPeak, clusterSize, blockCount):
-    #global tagCount
-    #global clusterStart
+    # global tagCount
+    # global clusterStart
     readMeans = np.empty(tagCount)
     readHeights = np.empty(tagCount)
     readMeans = np.full_like(readMeans, -1, dtype=np.double)
@@ -133,9 +133,9 @@ def assignReads(anchor, highestPeak, clusterSize, blockCount):
 
 def assignReadsToBlocks(anchor):
     blockCount = 1
-    #global readCount
-    #global clusterEnd
-    #global clusterStart
+    # global readCount
+    # global clusterEnd
+    # global clusterStart
 
     # create an array with clusterSize entries for the superGaussian distribution
     clusterSize = (clusterEnd - clusterStart)
@@ -165,11 +165,11 @@ def assignReadsToBlocks(anchor):
 
 # WRITE THE READS THAT ARE ASSIGNED TO A BLOCK TO STDOUT
 def writeBlocks(anchor):
-    #global clusterCounter
-    #global clusterChrom
-    #global clusterStart
-    #global clusterEnd
-    #global clusterStrand
+    # global clusterCounter
+    # global clusterChrom
+    # global clusterStart
+    # global clusterEnd
+    # global clusterStrand
     thisBlock = 0
     blockHeight = 0
     blockNb = 0
@@ -262,18 +262,18 @@ def writeBlocks(anchor):
 
 
 def read_bed_file(filename):
-    #global clusterHeight
-    #global clusterStart
-    #global clusterEnd
-    #global tagCount
-    #global clusterStrand
-    #global clusterChrom
+    # global clusterHeight
+    # global clusterStart
+    # global clusterEnd
+    # global tagCount
+    # global clusterStrand
+    # global clusterChrom
     thisCluster = []
     lastEnd = -1
     lastChrom = "x"
     lastStrand = "x"
     with open(filename) as handle:
-        for line handle:
+        for line in handle:
             # if "#" at the beginning of line -> header
             if line[0] == '#':
                 writeHeader()
