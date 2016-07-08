@@ -15,8 +15,6 @@ script:
   - flake8 . --ignore E501
   - time python blockbuster.py test-data/mbtest.bed > out.tmp
   - diff test-data/mbtest_output.txt out.tmp
-  
-  - time python blockbuster.py test-data/mbtest2.bed > out2.tmp
-  - diff test-data/mbtest2.bed.outc out2.tmp
+  - python diff_bboutput.py test-data/mbtest_coutput.tab out.tmp
 
 
