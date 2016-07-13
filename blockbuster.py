@@ -1,7 +1,7 @@
 import time
 import argparse
 import numpy as np
-# from scipy import stats
+from blist import blist
 from scipy.stats import norm
 
 # User Variables
@@ -92,9 +92,8 @@ def writeSuperGaussian(anchor, distrib, clusterSize):
             x = [i + mean for i in range(int(2 * variance) + 1)]
             y = r.height * norm.pdf(x, mean, variance)
             for i in range(int(2 * variance) + 1):
-                x = mean + i
-                if (int(x) < clusterSize):
-                    distrib[int(x)] += y[i]
+                if (int(mean + i) < clusterSize):
+                    distrib[int(mean + i)] += y[i]
                 if (int(mean - i) > 0):
                     distrib[int(mean - i)] += y[i]
 
@@ -103,8 +102,10 @@ def writeSuperGaussian(anchor, distrib, clusterSize):
 def assignReads(anchor, highestPeak, clusterSize, blockCount):
     global tagCount
     global clusterStart
-    readMeans = -1 * np.ones(tagCount, dtype=np.double)
-    readHeights = -1 * np.ones(tagCount, dtype=np.double)
+    readMeans = blist([-1])
+    readHeights = blist([-1])
+    readMeans *= tagCount
+    readHeights *= tagCount
     meanCounter = 0
 
     counterNew = 0
@@ -267,7 +268,7 @@ def read_bed_file(filename):
     global tagCount
     global clusterStrand
     global clusterChrom
-    thisCluster = []
+    thisCluster = blist([])
     lastEnd = -1
     lastChrom = "x"
     lastStrand = "x"
@@ -277,10 +278,7 @@ def read_bed_file(filename):
         print("cannot open %(filename)s\n" % {'filename': filename})
     else:
         header = 0
-        while True:
-            line = f.readline()
-            if not line:
-                break
+        for line in iter(f.readline, ''):
             # if "#" at the beginning of line -> header
             if line[0] == '#':
                 header = 1
@@ -293,7 +291,7 @@ def read_bed_file(filename):
 
                 if (args.type) == 1:
                     # run through line and split at separator
-                    linelist = line.split()
+                    linelist = blist(line.split())
                     try:
                         chrom = linelist[0]
                         start = int(linelist[1])
@@ -308,7 +306,7 @@ def read_bed_file(filename):
 
                 elif (args.type) == 2:
                     # run through line and split at separator
-                    linelist = line.split()
+                    linelist = blist(line.split())
                     try:
                         info = linelist[1]
                         strand = int(linelist[9])
@@ -323,7 +321,7 @@ def read_bed_file(filename):
                         exit(0)
 
                     # split id|freq
-                    q = info.split('|')
+                    q = blist(info.split('|'))
                     for i in range(len(q)):
                         if i == 0:
                             id = q[i]
@@ -342,7 +340,7 @@ def read_bed_file(filename):
                             assignReadsToBlocks(thisCluster)
                             writeBlocks(thisCluster)
 
-                        thisCluster = []
+                        thisCluster = blist([])
 
                         # reset cluster dimensions
                         clusterStart = start
