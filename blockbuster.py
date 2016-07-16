@@ -1,4 +1,4 @@
-from time import ctime
+import time
 import argparse
 import numpy as np
 from blist import blist
@@ -58,7 +58,7 @@ def stddev(readMeans, readHeights):
         if readMeans[i] != -1:
             s += (np.int(readHeights[i]) * readMeans[i])
             counter += np.int(readHeights[i])
-            
+
     if counter == 0:
         return 0
     mean = s / counter
@@ -156,7 +156,7 @@ def assignReadsToBlocks(anchor):
             cluster[blockCount] = block
             blockCount += 1
         new = len(anchor)
-        
+
     writeBlocks(cluster)
 
 
@@ -175,7 +175,7 @@ def writeBlocks(cluster):
         for read in cluster[block]:
             absClusterHeight += read.height
             absTagCount += 1
-            
+
     if len(cluster) > 0:
         clusterCounter += 1
         # print header
@@ -206,9 +206,6 @@ def writeBlocks(cluster):
 
         # print tags
         if args.printout == 2:
-            thisBlock = 0
-            size = 1
-            writeBlock = 0
             for block in cluster:
                 thisBlockHeight = 0
                 for read in cluster[block]:
