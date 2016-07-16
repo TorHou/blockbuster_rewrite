@@ -1,4 +1,4 @@
-import time
+from time import ctime
 import argparse
 import numpy as np
 from blist import blist
@@ -50,15 +50,6 @@ def writeHeader():
           % {'t': time.ctime(None), 'filename': args.file, 'sizescale': args.sizescale, 'minblockheight': args.minblockheight, 'merge': args.merge})
 
 
-# GET THE AMOUNT OF READS NOT ASSIGNED TO BLOCKS
-def getRest(anchor):
-    sum = 0
-    for r in anchor:
-        if r.block == -1:
-            sum += 1
-    return sum
-
-
 # CALCULATE THE STANDARD DEVIATION
 def stddev(readMeans, readHeights):
     s = 0
@@ -81,9 +72,7 @@ def stddev(readMeans, readHeights):
 
 
 # CALCULATE THE GAUSSIAN DISTRIBUTIONS OF ALL READS AND SUM THEM UP
-def writeSuperGaussian(anchor, distrib, clusterSize):
-    global clusterStart
-
+def writeSuperGaussian(anchor, distrib, clusterSize, clusterStart):
     for r in anchor:
         if r.block == -1:
             mean = ((r.start + r.end) / 2) - clusterStart
@@ -100,13 +89,13 @@ def writeSuperGaussian(anchor, distrib, clusterSize):
 
 # ASSIGN READS TO A BLOCK
 def assignReads(anchor, highestPeak, clusterSize, blockCount):
-    global tagCount
-    global clusterStart
     readMeans = blist([-1])
     readHeights = blist([-1])
     readMeans *= tagCount
     readHeights *= tagCount
     meanCounter = 0
+    blockHeight = 0
+    block = list()
 
     counterNew = 0
     counterOld = -1
@@ -114,26 +103,33 @@ def assignReads(anchor, highestPeak, clusterSize, blockCount):
     while counterOld != counterNew:
         dev = stddev(readMeans, readHeights)
         counterOld = counterNew
-        for start in anchor:
-            if start.block == -1:
-                mean = ((start.start + start.end) / 2) - clusterStart
-                variance = args.sizescale * (abs(start.end - start.start) / 2)
+        for read in anchor[:]:
+            mean = ((read.start + read.end) / 2) - clusterStart
+            variance = args.sizescale * (abs(read.end - read.start) / 2)
 
-                if (((mean - variance - dev) <= highestPeak and (mean + variance + dev) >= highestPeak) or (mean >= (highestPeak - args.merge) and mean <= (highestPeak + args.merge))):
-                    readMeans[meanCounter] = mean
-                    readHeights[meanCounter] = start.height
-                    meanCounter += 1
-                    start.block = blockCount
-                    counterNew += 1
+            if (((mean - variance - dev) <= highestPeak and (mean + variance + dev) >= highestPeak) or (mean >= (highestPeak - args.merge) and mean <= (highestPeak + args.merge))):
+                readMeans[meanCounter] = mean
+                readHeights[meanCounter] = read.height
+                meanCounter += 1
+                blockHeight += read.height
+                read.block = blockCount
+                block.append(read)
+                anchor.remove(read)
+                counterNew += 1
 
-    return counterNew
+    if blockHeight >= args.minblockheight:
+        return block
+    else:
+        return []
 
 
 def assignReadsToBlocks(anchor):
     blockCount = 1
+    cluster = dict()
     global readCount
     global clusterEnd
     global clusterStart
+    global tagCount
 
     # create an array with clusterSize entries for the superGaussian distribution
     clusterSize = (clusterEnd - clusterStart)
@@ -144,121 +140,81 @@ def assignReadsToBlocks(anchor):
 
     # run through sorted peaks
     while(old != new):
-        old = getRest(anchor)
+        old = len(anchor)
 
         # clean distribution array
         distrib = np.zeros(clusterSize, dtype=np.dtype('d'))
 
         # write distribution
-        writeSuperGaussian(anchor, distrib, clusterSize)
+        writeSuperGaussian(anchor, distrib, clusterSize, clusterStart)
         highestPeakIndex = np.argmax(distrib)
         distrib[highestPeakIndex] = 0
 
         # assign reads to the highest peak
-        sum = assignReads(anchor, highestPeakIndex, readCount, blockCount)
-        if sum != 0:
+        block = assignReads(anchor, highestPeakIndex, readCount, blockCount)
+        if len(block) != 0:
+            cluster[blockCount] = block
             blockCount += 1
-        new = getRest(anchor)
+        new = len(anchor)
+        
+    writeBlocks(cluster)
 
 
 # WRITE THE READS THAT ARE ASSIGNED TO A BLOCK TO STDOUT
-def writeBlocks(anchor):
+def writeBlocks(cluster):
     global clusterCounter
     global clusterChrom
     global clusterStart
     global clusterEnd
     global clusterStrand
-    thisBlock = 0
-    blockHeight = 0
-    blockNb = 0
-    thisTagCount = 0
-    thisClusterHeight = 0
     absTagCount = 0
     absClusterHeight = 0
-    size = 1
 
     # get cluster information
-    while size > 0:
-        thisBlock += 1
-
-        # reset variables
-        size = 0
-        blockHeight = 0
-        thisClusterHeight = 0
-        thisTagCount = 0
-
-        # run through linked list of reads
-        for read in anchor:
-            # if current read is in thisBlock
-            if read.block == thisBlock:
-                size += 1
-                blockHeight += read.height
-                thisClusterHeight += read.height
-                thisTagCount += 1
-
-        # check if block is high enough
-        if (blockHeight >= args.minblockheight) and (size > 0):
-            blockNb += 1
-            absClusterHeight += thisClusterHeight
-            absTagCount += thisTagCount
-
-    if blockNb > 0:
+    for block in cluster:
+        for read in cluster[block]:
+            absClusterHeight += read.height
+            absTagCount += 1
+            
+    if len(cluster) > 0:
         clusterCounter += 1
         # print header
         print(">cluster_%(cC)i\t%(cCh)s\t%(cS)i\t%(cE)i\t%(cStr)s\t%(absCH).2f\t%(absTC)i\t%(blockNb)i"
               % {'cC': clusterCounter, 'cCh': clusterChrom, 'cS': clusterStart, 'cE': clusterEnd,
-                 'cStr': clusterStrand, 'absCH': absClusterHeight, 'absTC': absTagCount, 'blockNb': blockNb})
+                 'cStr': clusterStrand, 'absCH': absClusterHeight, 'absTC': absTagCount, 'blockNb': len(cluster)})
 
         # print blocks
         if args.printout == 1:
-            thisBlock = 0
-            size = 1
-            writeBlock = 0
-            while size > 0:
-                thisBlock += 1
-                size = 0
+            for block in cluster:
                 thisBlockHeight = 0
                 thisBlockTags = 0
                 thisBlockStart = -1
                 thisBlockEnd = -1
-                for start in anchor:
-                    if start.block == thisBlock:
-                        if thisBlockStart == -1:
-                            thisBlockStart = start.start
-                            thisBlockEnd = start.end
-                        if start.start < thisBlockStart:
-                            thisBlockStart = start.start
-                        if start.end > thisBlockEnd:
-                            thisBlockEnd = start.end
-                        thisBlockHeight += start.height
-                        thisBlockTags += 1
-                        size += 1
-                if (thisBlockHeight >= args.minblockheight) and (size > 0):
-                    writeBlock += 1
-                    print("%(wB)i\t%(cCh)s\t%(tBS)i\t%(tBE)i\t%(cS)s\t%(tBH).2f\t%(tBT)i"
-                          % {'wB': writeBlock, 'cCh': clusterChrom, 'tBS': thisBlockStart, 'tBE': thisBlockEnd,
-                             'cS': clusterStrand, 'tBH': thisBlockHeight, 'tBT': thisBlockTags})
+                for read in cluster[block]:
+                    if thisBlockStart == -1:
+                        thisBlockStart = read.start
+                        thisBlockEnd = read.end
+                    if read.start < thisBlockStart:
+                        thisBlockStart = read.start
+                    if read.end > thisBlockEnd:
+                        thisBlockEnd = read.end
+                    thisBlockHeight += read.height
+                    thisBlockTags += 1
+                print("%(wB)i\t%(cCh)s\t%(tBS)i\t%(tBE)i\t%(cS)s\t%(tBH).2f\t%(tBT)i"
+                      % {'wB': block, 'cCh': clusterChrom, 'tBS': thisBlockStart, 'tBE': thisBlockEnd,
+                         'cS': clusterStrand, 'tBH': thisBlockHeight, 'tBT': thisBlockTags})
 
         # print tags
         if args.printout == 2:
             thisBlock = 0
             size = 1
             writeBlock = 0
-            while size > 0:
+            for block in cluster:
                 thisBlockHeight = 0
-                thisBlock += 1
-                size = 0
-                for start in anchor:
-                    if start.block == thisBlock:
-                        thisBlockHeight += start.height
-                        size += 1
-                if (thisBlockHeight >= args.minblockheight) and (size > 0):
-                    writeBlock += 1
-                    for start in anchor:
-                        if start.block == thisBlock:
-                            print("%(sCh)s\t%(ss)d\t%(se)d\t%(si)s\t%(sh)lf\t%(sst)s\t%(wB)i"
-                                  % {'sCh': start.chrom, 'ss': start.start, 'se': start.end, 'si': start.id,
-                                     'sh': start.height, 'sst': start.strand, 'wB': writeBlock})
+                for read in cluster[block]:
+                    print("%(sCh)s\t%(ss)d\t%(se)d\t%(si)s\t%(sh)lf\t%(sst)s\t%(wB)i"
+                          % {'sCh': read.chrom, 'ss': read.start, 'se': read.end, 'si': read.id,
+                             'sh': read.height, 'sst': read.strand, 'wB': block})
 
 
 def read_bed_file(filename):
@@ -338,9 +294,8 @@ def read_bed_file(filename):
                         if ((clusterHeight) > (args.minClusterHeight)):
                             # Analyze Cluster
                             assignReadsToBlocks(thisCluster)
-                            writeBlocks(thisCluster)
 
-                        thisCluster = blist([])
+                        thisCluster.clear()
 
                         # reset cluster dimensions
                         clusterStart = start
@@ -370,7 +325,6 @@ def read_bed_file(filename):
                 header = 0
 
         assignReadsToBlocks(thisCluster)
-        writeBlocks(thisCluster)
         f.close()
 
 try:
